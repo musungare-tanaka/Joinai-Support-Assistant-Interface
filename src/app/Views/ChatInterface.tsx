@@ -51,6 +51,11 @@ export default function ChatInterface() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const extractEmail = (value: string): string | null => {
+    const match = value.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}/);
+    return match ? match[0] : null;
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -82,9 +87,13 @@ export default function ChatInterface() {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
+        // Keep the original ticket flow:
+        // 1) backend returns `email_required`
+        // 2) user provides email
+        // 3) frontend sends it in `email` while still sending the raw message in `question`
         body: JSON.stringify({ 
           question: currentInput,
-          email: null
+          email: isWaitingForEmail ? extractEmail(currentInput) : null
         }),
       });
 
